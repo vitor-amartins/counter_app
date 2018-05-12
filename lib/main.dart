@@ -67,23 +67,18 @@ class _HomeWidget extends State<MyHomePage> {
         centerTitle: true,
         actions: <Widget>[
           new IconButton(
-            icon: new Icon(Icons.add),
-            onPressed: () {
-              nameCounterDialog(counters.length, false);
-            },
-          ),
-          new IconButton(
-            icon: new Icon(Icons.remove),
-            onPressed: () {
-              if(counters.length > 0){
-                counters.removeLast();
-                setState(() {
-                  widget.storage.writeCounters(json.encode(counters));
-                });
-              }
-            },
+            icon: new Icon(Icons.more_vert),
+            onPressed: () {},
           )
         ],
+      ),
+      floatingActionButton: new FloatingActionButton(
+        mini: true,
+        child: new Icon(Icons.add, color: Colors.white,),
+        backgroundColor: Colors.black,
+        onPressed: () {
+          _nameCounter(counters.length, false);
+        },
       ),
       body: new Container(
         decoration: BoxDecoration(
@@ -113,57 +108,11 @@ class _HomeWidget extends State<MyHomePage> {
     );
   }
 
-  nameCounterDialog(index, rename) {
-    showDialog(context: context,
-      child: new SimpleDialog(
-        contentPadding: const EdgeInsets.all(16.0),
-        title: new Text(rename ? "Renomear contador" : "Adicionar contador"),
-        children: <Widget>[
-          new TextField(
-            autofocus: true,
-            onChanged: (String str) {
-              newCounterTitle = str;
-            },
-            onSubmitted: (str) {
-              if(str != null && str != '') {
-                if (rename) counters[index].setTitle = str;
-                else counters.add(Contador(str, 0));
-                setState(() {
-                  widget.storage.writeCounters(json.encode(counters));
-                });
-                newCounterTitle = null;
-                Navigator.pop(context);
-              }
-            },
-            decoration: new InputDecoration(
-              hintText: rename ? "Digite o novo nome do contador" : "Digite o nome do contador"  ,
-            ),
-          ),
-          new Divider(),
-          new FlatButton(
-            child: new Text("OK"),
-            onPressed: () {
-              if(newCounterTitle != null && newCounterTitle != '') {
-                if (rename) counters[index].setTitle = newCounterTitle;
-                else counters.add(Contador(newCounterTitle, 0));
-                setState(() {
-                  widget.storage.writeCounters(json.encode(counters));
-                });
-                newCounterTitle = null;
-                Navigator.pop(context);
-              }
-            },
-          )
-        ],
-      )
-    );
-  }
-
   setRowContent(rowNumber) {
     return <Widget>[
       new GestureDetector(
         onTap: () {
-          nameCounterDialog(rowNumber, true);
+          _nameCounter(rowNumber, true);
         },
         child: new Text(counters[rowNumber].title, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
       ),
@@ -189,6 +138,98 @@ class _HomeWidget extends State<MyHomePage> {
           ),
         ],
       ),
+      new IconButton(
+        color: Colors.red,
+        icon: new Icon(Icons.delete_outline),
+        onPressed: () {
+          _confirmExclusion(rowNumber);
+        },
+      ),
+      new Container(height: 8.0,)
     ];
+  }
+
+  Future<Null> _nameCounter(index, rename) async {
+    return showDialog<Null>(
+      context: context,
+      builder: (BuildContext context) {
+        return new SimpleDialog(
+          contentPadding: const EdgeInsets.all(16.0),
+          title: new Text(rename ? "Renomear contador" : "Adicionar contador"),
+          children: <Widget>[
+            new TextField(
+              autofocus: true,
+              onChanged: (String str) {
+                newCounterTitle = str;
+              },
+              onSubmitted: (str) {
+                if(str != null && str != '') {
+                  if (rename) counters[index].setTitle = str;
+                  else counters.add(Contador(str, 0));
+                  setState(() {
+                    widget.storage.writeCounters(json.encode(counters));
+                  });
+                  newCounterTitle = null;
+                  Navigator.pop(context);
+                }
+              },
+              decoration: new InputDecoration(
+                hintText: rename ? "Digite o novo nome do contador" : "Digite o nome do contador"  ,
+              ),
+            ),
+            new Divider(),
+            new FlatButton(
+              child: new Text("OK"),
+              onPressed: () {
+                if(newCounterTitle != null && newCounterTitle != '') {
+                  if (rename) counters[index].setTitle = newCounterTitle;
+                  else counters.add(Contador(newCounterTitle, 0));
+                  setState(() {
+                    widget.storage.writeCounters(json.encode(counters));
+                  });
+                  newCounterTitle = null;
+                  Navigator.pop(context);
+                }
+              },
+            )
+          ],
+        );
+      }
+    );
+  }
+
+  Future<Null> _confirmExclusion(index) async {
+    return showDialog<Null>(
+      context: context,
+      builder: (BuildContext context) {
+        return new AlertDialog(
+          title: new Text("Tem certeza que deseja excluir ${counters[index].title}?"),
+          actions: <Widget>[
+            new FlatButton(
+              child: new Text("CANCELAR", style: new TextStyle(color: Colors.white)),
+              color: Colors.grey,
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            new FlatButton(
+              child: new Text("EXCLUIR", style: new TextStyle(color: Colors.white)),
+              color: Colors.red,
+              onPressed: () {
+                excludeCounter(index);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      }
+    );
+  }
+
+  excludeCounter(index) {
+    counters.removeAt(index);
+    setState(() {
+      widget.storage.writeCounters(json.encode(counters));
+    });
   }
 }
