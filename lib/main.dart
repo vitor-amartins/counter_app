@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'storage.class.dart';
 import 'dart:io';
 import 'dart:async';
 
@@ -10,6 +10,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return new MaterialApp(
         title: "Contador",
+        theme: new ThemeData.dark(),
         home: new MyHomePage(title: "Contador", storage: new Storage())
     );
   }
@@ -115,7 +116,7 @@ class _HomeWidget extends State<MyHomePage> {
     if(rowNumber == 0) {
       var pluralAlmoco = (almoco == 1) ? "ALMOÇO" : "ALMOÇOS";
       return <Widget>[
-        new Text("SALDO NO RU", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0)),
+        new Text("SALDO NO RU", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
         new Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -125,7 +126,7 @@ class _HomeWidget extends State<MyHomePage> {
               color: Colors.red,
               onPressed: _decrementAlmoco,
             ),
-            new Text("$almoco", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+            new Text("$almoco", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black)),
             new IconButton(
               icon: new Icon(Icons.add),
               color: Colors.green,
@@ -133,12 +134,12 @@ class _HomeWidget extends State<MyHomePage> {
             ),
           ],
         ),
-        new Text(pluralAlmoco, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0))
+        new Text(pluralAlmoco, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black))
       ];
     } else if(rowNumber == 1) {
       var pluralJanta = (janta == 1) ? "JANTA" : "JANTAS";
       return <Widget>[
-        new Text("SALDO NO RU", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0)),
+        new Text("SALDO NO RU", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
         new Row(
           mainAxisSize: MainAxisSize.max,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -148,7 +149,7 @@ class _HomeWidget extends State<MyHomePage> {
               color: Colors.red,
               onPressed: _decrementJanta,
             ),
-            new Text("$janta", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0)),
+            new Text("$janta", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black)),
             new IconButton(
               icon: new Icon(Icons.add),
               color: Colors.green,
@@ -156,61 +157,11 @@ class _HomeWidget extends State<MyHomePage> {
             ),
           ],
         ),
-        new Text(pluralJanta, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0))
+        new Text(pluralJanta, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black))
       ];
     } else {
       return <Widget>[
       ];
     }
   }
-}
-
-class Storage {
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-
-    return directory.path;
-  }
-
-  Future<File> get _localFileA async {
-    final path = await _localPath;
-    return new File('$path/almoco.txt');
-  }
-
-  Future<File> get _localFileJ async {
-    final path = await _localPath;
-    return new File('$path/janta.txt');
-  }
-
-  Future<File> writeAlmoco(int number) async {
-    final file = await _localFileA;
-    return file.writeAsString("$number");
-  }
-
-  Future<File> writeJanta(int number) async {
-    final file = await _localFileJ;
-    return file.writeAsString("$number");
-  }
-
-  Future<int> readAlmoco() async {
-    try {
-      final file = await _localFileA;
-      String content = await file.readAsString();
-      return int.parse(content);
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  Future<int> readJanta() async {
-    try {
-      final file = await _localFileJ;
-      String content = await file.readAsString();
-      return int.parse(content);
-    } catch (e) {
-      return 0;
-    }
-  }
-
 }
