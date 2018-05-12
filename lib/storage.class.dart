@@ -10,43 +10,23 @@ class Storage {
     return directory.path;
   }
 
-  Future<File> get _localFileA async {
+  Future<File> get _localFile async {
     final path = await _localPath;
-    return new File('$path/almoco.txt');
+    return new File('$path/counters.txt');
   }
 
-  Future<File> get _localFileJ async {
-    final path = await _localPath;
-    return new File('$path/janta.txt');
-  }
-
-  Future<File> writeAlmoco(int number) async {
-    final file = await _localFileA;
+  Future<File> writeCounters(String number) async {
+    final file = await _localFile;
     return file.writeAsString("$number");
   }
 
-  Future<File> writeJanta(int number) async {
-    final file = await _localFileJ;
-    return file.writeAsString("$number");
-  }
-
-  Future<int> readAlmoco() async {
+  Future<String> readCounters() async {
     try {
-      final file = await _localFileA;
+      final file = await _localFile;
       String content = await file.readAsString();
-      return int.parse(content);
+      return content;
     } catch (e) {
-      return 0;
-    }
-  }
-
-  Future<int> readJanta() async {
-    try {
-      final file = await _localFileJ;
-      String content = await file.readAsString();
-      return int.parse(content);
-    } catch (e) {
-      return 0;
+      return '';
     }
   }
 }

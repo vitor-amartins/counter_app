@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'storage.class.dart';
+import 'counters.class.dart';
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 
 void main() => runApp(new MyApp());
 
@@ -30,51 +32,32 @@ class MyHomePage extends StatefulWidget {
 
 class _HomeWidget extends State<MyHomePage> {
 
-  var almoco;
-  var janta;
+  List<Contador> counters = [];
 
   @override
   initState() {
     super.initState();
-    widget.storage.readAlmoco().then((int value) {
-      setState(() {
-        almoco = value;
-      });
-    });
-    widget.storage.readJanta().then((int value) {
-      setState(() {
-        janta = value;
-      });
+    widget.storage.readCounters().then((String str) {
+      if(str != '') json.decode(str).forEach((map) => counters.add(new Contador.fromJson(map)));
+      setState(() {});
     });
   }
 
-  Future<File> _incrementAlmoco() async {
+  Future<File> _incrementCounter(rowNumber) async {
     setState(() {
-      almoco++;
+      counters[rowNumber].inc();
     });
-    return widget.storage.writeAlmoco(almoco);
+    return widget.storage.writeCounters(json.encode(counters));
   }
 
-  Future<File> _incrementJanta() async {
+  Future<File> _decrementCounter(rowNumber) async {
     setState(() {
-      janta++;
+      counters[rowNumber].dec();
     });
-    return widget.storage.writeJanta(janta);
+    return widget.storage.writeCounters(json.encode(counters));
   }
 
-  Future<File> _decrementAlmoco() async {
-    setState(() {
-      almoco--;
-    });
-    return widget.storage.writeAlmoco(almoco);
-  }
-
-  Future<File> _decrementJanta() async {
-    setState(() {
-      janta--;
-    });
-    return widget.storage.writeJanta(janta);
-  }
+  String newCounterTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +65,57 @@ class _HomeWidget extends State<MyHomePage> {
       appBar: new AppBar(
         title: new Text("Contador"),
         centerTitle: true,
-        backgroundColor: new Color.fromRGBO(80, 80, 80, 1.0),
+        actions: <Widget>[
+          new IconButton(
+            icon: new Icon(Icons.add),
+            onPressed: () {
+              showDialog(context: context, child:
+                new SimpleDialog(
+                  contentPadding: const EdgeInsets.all(16.0),
+                  title: new Text("Adicionar contador"),
+                  children: <Widget>[
+                    new TextField(
+                      autofocus: true,
+                      onChanged: (String str) {
+                        setState(() {
+                          newCounterTitle = str;
+                        });
+                      },
+                      decoration: new InputDecoration(
+                        hintText: "Digite o nome do contador",
+                      ),
+                    ),
+                    new Divider(),
+                    new RaisedButton(
+                      child: new Text("OK"),
+                      onPressed: () {
+                        if(newCounterTitle != null && newCounterTitle != '') {
+                          counters.add(Contador(counters.length, newCounterTitle, 0));
+                          setState(() {
+                            widget.storage.writeCounters(json.encode(counters));
+                          });
+                          newCounterTitle = null;
+                          Navigator.pop(context);
+                        }
+                      },
+                    )
+                  ],
+                )
+              );
+            },
+          ),
+          new IconButton(
+            icon: new Icon(Icons.remove),
+            onPressed: () {
+              if(counters.length > 0){
+                counters.removeLast();
+                setState(() {
+                  widget.storage.writeCounters(json.encode(counters));
+                });
+              }
+            },
+          )
+        ],
       ),
       body: new Container(
         decoration: BoxDecoration(
@@ -92,7 +125,7 @@ class _HomeWidget extends State<MyHomePage> {
           )
         ),
         child: new ListView.builder(
-          itemCount: 2,
+          itemCount: counters.length,
           itemBuilder: (context, rowNumber) {
             return new Container(
               padding: new EdgeInsets.all(15.0),
@@ -113,55 +146,30 @@ class _HomeWidget extends State<MyHomePage> {
   }
 
   setRowContent(rowNumber) {
-    if(rowNumber == 0) {
-      var pluralAlmoco = (almoco == 1) ? "ALMOÇO" : "ALMOÇOS";
-      return <Widget>[
-        new Text("SALDO NO RU", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
-        new Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            new IconButton(
-              icon: new Icon(Icons.remove),
-              color: Colors.red,
-              onPressed: _decrementAlmoco,
-            ),
-            new Text("$almoco", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black)),
-            new IconButton(
-              icon: new Icon(Icons.add),
-              color: Colors.green,
-              onPressed: _incrementAlmoco,
-            ),
-          ],
-        ),
-        new Text(pluralAlmoco, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black))
-      ];
-    } else if(rowNumber == 1) {
-      var pluralJanta = (janta == 1) ? "JANTA" : "JANTAS";
-      return <Widget>[
-        new Text("SALDO NO RU", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
-        new Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            new IconButton(
-              icon: new Icon(Icons.remove),
-              color: Colors.red,
-              onPressed: _decrementJanta,
-            ),
-            new Text("$janta", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black)),
-            new IconButton(
-              icon: new Icon(Icons.add),
-              color: Colors.green,
-              onPressed: _incrementJanta,
-            ),
-          ],
-        ),
-        new Text(pluralJanta, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black))
-      ];
-    } else {
-      return <Widget>[
-      ];
-    }
+    return <Widget>[
+      new Text(counters[rowNumber].title, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
+      new Container(height: 8.0,),
+      new Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          new IconButton(
+            icon: new Icon(Icons.remove),
+            color: Colors.red,
+            onPressed: () {
+              _decrementCounter(rowNumber);
+            },
+          ),
+          new Text("${counters[rowNumber].value}", style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: Colors.black)),
+          new IconButton(
+            icon: new Icon(Icons.add),
+            color: Colors.green,
+            onPressed: () {
+              _incrementCounter(rowNumber);
+            },
+          ),
+        ],
+      ),
+    ];
   }
 }
