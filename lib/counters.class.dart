@@ -1,22 +1,19 @@
 class Contador {
-  int _index;
   String _title;
   int _value;
 
-  Contador(this._index, this._title, this._value);
+  Contador(this._title, this._value);
 
   Contador.fromJson(Map<String, dynamic> m) {
-    _index = m['index'];
     _title = m['title'];
     _value = m['value'];
   }
 
-  int get index => _index;
   String get title => _title;
   int get value => _value;
+  set setTitle(String newTitle) => _title = newTitle;
 
   Map<String, dynamic> toJson() => {
-    'index': _index,
     'title': _title,
     'value': _value,
   };

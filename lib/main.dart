@@ -69,39 +69,7 @@ class _HomeWidget extends State<MyHomePage> {
           new IconButton(
             icon: new Icon(Icons.add),
             onPressed: () {
-              showDialog(context: context, child:
-                new SimpleDialog(
-                  contentPadding: const EdgeInsets.all(16.0),
-                  title: new Text("Adicionar contador"),
-                  children: <Widget>[
-                    new TextField(
-                      autofocus: true,
-                      onChanged: (String str) {
-                        setState(() {
-                          newCounterTitle = str;
-                        });
-                      },
-                      decoration: new InputDecoration(
-                        hintText: "Digite o nome do contador",
-                      ),
-                    ),
-                    new Divider(),
-                    new RaisedButton(
-                      child: new Text("OK"),
-                      onPressed: () {
-                        if(newCounterTitle != null && newCounterTitle != '') {
-                          counters.add(Contador(counters.length, newCounterTitle, 0));
-                          setState(() {
-                            widget.storage.writeCounters(json.encode(counters));
-                          });
-                          newCounterTitle = null;
-                          Navigator.pop(context);
-                        }
-                      },
-                    )
-                  ],
-                )
-              );
+              nameCounterDialog(counters.length, false);
             },
           ),
           new IconButton(
@@ -145,9 +113,60 @@ class _HomeWidget extends State<MyHomePage> {
     );
   }
 
+  nameCounterDialog(index, rename) {
+    showDialog(context: context,
+      child: new SimpleDialog(
+        contentPadding: const EdgeInsets.all(16.0),
+        title: new Text(rename ? "Renomear contador" : "Adicionar contador"),
+        children: <Widget>[
+          new TextField(
+            autofocus: true,
+            onChanged: (String str) {
+              newCounterTitle = str;
+            },
+            onSubmitted: (str) {
+              if(str != null && str != '') {
+                if (rename) counters[index].setTitle = str;
+                else counters.add(Contador(str, 0));
+                setState(() {
+                  widget.storage.writeCounters(json.encode(counters));
+                });
+                newCounterTitle = null;
+                Navigator.pop(context);
+              }
+            },
+            decoration: new InputDecoration(
+              hintText: rename ? "Digite o novo nome do contador" : "Digite o nome do contador"  ,
+            ),
+          ),
+          new Divider(),
+          new FlatButton(
+            child: new Text("OK"),
+            onPressed: () {
+              if(newCounterTitle != null && newCounterTitle != '') {
+                if (rename) counters[index].setTitle = newCounterTitle;
+                else counters.add(Contador(newCounterTitle, 0));
+                setState(() {
+                  widget.storage.writeCounters(json.encode(counters));
+                });
+                newCounterTitle = null;
+                Navigator.pop(context);
+              }
+            },
+          )
+        ],
+      )
+    );
+  }
+
   setRowContent(rowNumber) {
     return <Widget>[
-      new Text(counters[rowNumber].title, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
+      new GestureDetector(
+        onTap: () {
+          nameCounterDialog(rowNumber, true);
+        },
+        child: new Text(counters[rowNumber].title, style: new TextStyle(fontWeight: FontWeight.bold, fontSize: 30.0, color: Colors.black)),
+      ),
       new Container(height: 8.0,),
       new Row(
         mainAxisSize: MainAxisSize.max,
