@@ -40,6 +40,12 @@ flutter:
     - assets/w6.jpg
     - assets/w7.jpg
     - assets/w8.jpg
+    - assets/w9.jpg
+    - assets/w10.jpg
+    - assets/w11.jpg
+    - assets/w12.jpg
+    - assets/w13.jpg
+    - assets/w14.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
