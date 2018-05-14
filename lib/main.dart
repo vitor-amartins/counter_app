@@ -30,6 +30,9 @@ class MyHomePage extends StatefulWidget {
   _HomeWidget createState() => new _HomeWidget();
 }
 
+var wallpapers = ['wallpaper', 'w1', 'w2','w3','w4','w5','w6', 'w7', 'w8'];
+var pathWallpaper = "assets/wallpaper.jpg";
+
 class _HomeWidget extends State<MyHomePage> {
 
   List<Contador> counters = [];
@@ -41,6 +44,13 @@ class _HomeWidget extends State<MyHomePage> {
       if(str != '') json.decode(str).forEach((map) => counters.add(new Contador.fromJson(map)));
       setState(() {});
     });
+    widget.storage.readConfig().then((String str) {
+      if (str != '' && wallpapers.contains(str)) pathWallpaper = "assets/$str.jpg";
+    });
+  }
+
+  Future<File> _saveWallpaper(file) async {
+    return widget.storage.writeConfig(file);
   }
 
   Future<File> _incrementCounter(rowNumber) async {
@@ -57,7 +67,10 @@ class _HomeWidget extends State<MyHomePage> {
     return widget.storage.writeCounters(json.encode(counters));
   }
 
-  String newCounterTitle;
+  _callChangeWP() async {
+    var newPath = await Navigator.push(context, new MaterialPageRoute(builder: (context) => new WallpaperWidget()));
+    _saveWallpaper(newPath);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +80,10 @@ class _HomeWidget extends State<MyHomePage> {
         centerTitle: true,
         actions: <Widget>[
           new IconButton(
-            icon: new Icon(Icons.more_vert),
-            onPressed: () {},
+            icon: new Icon(Icons.settings),
+            onPressed: () {
+              _callChangeWP();
+            },
           )
         ],
       ),
@@ -83,7 +98,7 @@ class _HomeWidget extends State<MyHomePage> {
       body: new Container(
         decoration: BoxDecoration(
           image: new DecorationImage(
-            image: new AssetImage("assets/wallpaper.jpg"),
+            image: new AssetImage(pathWallpaper),
             fit: BoxFit.cover,
           )
         ),
@@ -150,6 +165,7 @@ class _HomeWidget extends State<MyHomePage> {
   }
 
   Future<Null> _nameCounter(index, rename) async {
+    String newCounterTitle;
     return showDialog<Null>(
       context: context,
       builder: (BuildContext context) {
@@ -216,7 +232,10 @@ class _HomeWidget extends State<MyHomePage> {
               child: new Text("EXCLUIR", style: new TextStyle(color: Colors.white)),
               color: Colors.red,
               onPressed: () {
-                excludeCounter(index);
+                counters.removeAt(index);
+                setState(() {
+                  widget.storage.writeCounters(json.encode(counters));
+                });
                 Navigator.of(context).pop();
               },
             ),
@@ -225,11 +244,62 @@ class _HomeWidget extends State<MyHomePage> {
       }
     );
   }
+}
 
-  excludeCounter(index) {
-    counters.removeAt(index);
-    setState(() {
-      widget.storage.writeCounters(json.encode(counters));
-    });
+class WallpaperWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text("Alterar plano de fundo"),
+        centerTitle: true,
+      ),
+      body: new ListView.builder(
+        itemCount: (wallpapers.length%3 == 0) ? wallpapers.length~/3 :  wallpapers.length~/3+1,
+        itemBuilder: (context, rowNumber) {
+          return new Container(
+            padding: new EdgeInsets.all(8.0),
+            child: new Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                new Column(
+                  children: <Widget>[
+                    new GestureDetector(
+                      child: new Image.asset("assets/${wallpapers[rowNumber*3]}.jpg", fit: BoxFit.cover, height: 200.0,),
+                      onTap: () {
+                        pathWallpaper = "assets/${wallpapers[rowNumber*3]}.jpg";
+                        Navigator.pop(context, wallpapers[rowNumber*3]);
+                      },
+                    ),
+                  ],
+                ),
+                new Column(
+                  children: <Widget>[
+                    new GestureDetector(
+                      child: new Image.asset("assets/${wallpapers[rowNumber*3+1]}.jpg", fit: BoxFit.cover, height: 200.0,),
+                      onTap: () {
+                        pathWallpaper = "assets/${wallpapers[rowNumber*3+1]}.jpg";
+                        Navigator.pop(context, wallpapers[rowNumber*3+1]);
+                      },
+                    ),
+                  ],
+                ),
+                new Column(
+                  children: <Widget>[
+                    new GestureDetector(
+                      child: new Image.asset("assets/${wallpapers[rowNumber*3+2]}.jpg", fit: BoxFit.cover, height: 200.0,),
+                      onTap: () {
+                        pathWallpaper = "assets/${wallpapers[rowNumber*3+2]}.jpg";
+                        Navigator.pop(context, wallpapers[rowNumber*3+2]);
+                      },
+                    ),
+                  ],
+                )
+              ],
+            ),
+          );
+        },
+      )
+    );
   }
 }
